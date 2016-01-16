@@ -12,11 +12,21 @@ define RESET_BUTTON = XB360_A;
 // define during testing to run macros on any system
 define TESTING = 0;
 
+int resettingFor = 0;
+
 main {
   // combo_run(resetNotification);
   // combo_run(authCountNotification);
 
   if (TESTING || get_console() == PIO_PS4 && get_controller() != PIO_PS4) {
+    if (resettingFor > 0) {
+      resettingFor = resettingFor - get_rtime();
+      if (resettingFor > 0)
+        combo_run(resetNotification);
+      else
+        combo_stop(resetNotification);
+    }
+
     // intercept command button
     if (get_val(CMD_BUTTON)) {
       // back button by itself does nothing, should be set first so that a
@@ -30,6 +40,7 @@ main {
       else if (event_press(RESET_BUTTON)) {
         // hold back/select and Press a/cross to reset auth timeout
         output_reconnection();
+        resettingFor = 1000;
         combo_stop(authCountNotification);
         combo_run(resetNotification);
       }
