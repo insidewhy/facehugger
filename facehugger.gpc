@@ -1,0 +1,77 @@
+// multiply by 30 seconds to get real time
+define NOTIFICATION_LIMIT = 3;
+define LED_BLINK_SPEED = 100;
+
+// button used for reset/share combinations
+define CMD_BUTTON = XB360_BACK;
+// press with command button to share
+define SHARE_BUTTON = XB360_Y;
+// press with command button to reset controller manually
+define RESET_BUTTON = XB360_A;
+
+// define during testing to run macros on any system
+define TESTING = 0;
+
+main {
+  // combo_run(resetNotification);
+  // combo_run(authCountNotification);
+
+  if (TESTING || get_console() == PIO_PS4 && get_controller() != PIO_PS4) {
+    // intercept command button
+    if (get_val(CMD_BUTTON)) {
+      // back button by itself does nothing, should be set first so that a
+      // combination can override it (in case it is also an output)
+      set_val(CMD_BUTTON, 0);
+
+      if (get_val(SHARE_BUTTON)) {
+        set_val(SHARE_BUTTON, 0);
+        set_val(PS4_SHARE, 100);
+      }
+      else if (event_press(RESET_BUTTON)) {
+        // hold back/select and Press a/cross to reset auth timeout
+        output_reconnection();
+        combo_stop(authCountNotification);
+        combo_run(resetNotification);
+      }
+
+      set_val(RESET_BUTTON, 0);
+    }
+
+    if (ps4_authtimeout() <= NOTIFICATION_LIMIT + 1)
+      combo_run(authCountNotification);
+  }
+}
+
+// rotate leds clockwise
+combo authCountNotification {
+  set_led(LED_1, 1);
+  wait(LED_BLINK_SPEED);
+  set_led(LED_1, 0);
+  set_led(LED_2, 1);
+  wait(LED_BLINK_SPEED);
+  set_led(LED_2, 0);
+  set_led(LED_4, 1);
+  wait(LED_BLINK_SPEED);
+  set_led(LED_4, 0);
+  set_led(LED_3, 1);
+  wait(LED_BLINK_SPEED);
+  set_led(LED_3, 0);
+  set_led(LED_1, 1);
+}
+
+// rotate leds counter-clockwise
+combo resetNotification {
+  set_led(LED_1, 1);
+  wait(LED_BLINK_SPEED);
+  set_led(LED_1, 0);
+  set_led(LED_3, 1);
+  wait(LED_BLINK_SPEED);
+  set_led(LED_3, 0);
+  set_led(LED_4, 1);
+  wait(LED_BLINK_SPEED);
+  set_led(LED_4, 0);
+  set_led(LED_2, 1);
+  wait(LED_BLINK_SPEED);
+  set_led(LED_2, 0);
+  set_led(LED_1, 1);
+}
