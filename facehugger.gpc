@@ -21,10 +21,13 @@ main {
   if (TESTING || get_console() == PIO_PS4 && get_controller() != PIO_PS4) {
     if (resettingFor > 0) {
       resettingFor = resettingFor - get_rtime();
-      if (resettingFor > 0)
+      if (resettingFor > 0) {
         combo_run(resetNotification);
-      else
+      }
+      else {
         combo_stop(resetNotification);
+        reset_leds();
+      }
     }
 
     // intercept command button
